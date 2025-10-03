@@ -1,0 +1,6 @@
+  spring:
+  profiles: dev
+
+
+  external:
+  default-base-url: https://192.168.189.2:7860

@@ -1,0 +1,7 @@
+spring:
+profiles: prod
+
+
+external:
+default-base-url: https://api.partnerbank.example
+request-timeout-ms: 8000
