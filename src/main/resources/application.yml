@@ -11,21 +11,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, prometheus
+        include: health,info,metrics,prometheus
 
 logging:
   level:
     root: INFO
     com.aik: DEBUG
-
-external:
-  default-base-url: https://192.168.189.2:7860
-  request-timeout-ms: 5000
-  endpoints:
-    sms-send: /smsdispatchers/v1/SMSSend
-    balance-inquiry: https://192.168.189.4:7844/BIWS/MBTransactions/MessageBroker/BalanceInquiry
-    ministatement: /mbstatements/v1/ministatement
-    fullstatement: https://192.168.189.4:7844/mbstatements/v1/fullstatement
-    internal-title-fetch: https://192.168.189.4:7844/BIWS/MBTransactions/MessageBroker/InternalTitleFetch
-    internal-fund-transfer: https://192.168.189.4:7844/BIWS/MBTransactions/MessageBroker/Internal_Fund_Transfer
-    ibft-titlefetch: https://192.168.189.2:7866/BIWS/MBTransactions/MessageBroker/IBFTTitleFetch
