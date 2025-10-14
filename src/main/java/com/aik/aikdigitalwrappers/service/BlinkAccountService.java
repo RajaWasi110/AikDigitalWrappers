@@ -35,9 +35,7 @@ public class BlinkAccountService {
         this.restTemplate = restTemplate;
     }
 
-    // =======================
     // UAT
-    // =======================
     public BlinkAccountResponse createBlinkAccountUat(BlinkAccountRequest request) {
         request.setUserName(uatUsername);
         request.setPassword(uatPassword);
@@ -52,9 +50,7 @@ public class BlinkAccountService {
         }
     }
 
-    // =======================
     // PROD
-    // =======================
     public BlinkAccountResponse createBlinkAccountProd(BlinkAccountRequest request) {
         request.setUserName(prodUsername);
         request.setPassword(prodPassword);

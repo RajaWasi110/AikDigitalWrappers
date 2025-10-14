@@ -1,6 +1,7 @@
 package com.aik.aikdigitalwrappers.dto.requests;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -15,15 +16,15 @@ public class BlinkAccountRequest {
     private String password;
 
     @NotBlank
-    @Size(min = 13, max = 13)
+    @Size(min = 14, max = 14)
     private String cnic;
 
     @NotBlank
-    @Size(min = 14, max = 14)
+    @DateTimeFormat(pattern = "yyyyMMddHHmmss")
     private String dateTime;
 
     @NotBlank
-    @Size(min = 11, max = 11)
+    @Size(min = 11, max = 14)
     private String mobileNumber;
 
     @NotBlank
