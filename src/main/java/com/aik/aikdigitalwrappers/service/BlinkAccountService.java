@@ -1,6 +1,5 @@
 package com.aik.aikdigitalwrappers.service;
 
-
 import com.aik.aikdigitalwrappers.dto.requests.BlinkAccountRequest;
 import com.aik.aikdigitalwrappers.dto.responses.BlinkAccountResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
@@ -15,7 +14,16 @@ public class BlinkAccountService {
 
     private final RestTemplate restTemplate;
 
+    // =========================
+    // Fixed constants (common for both environments)
+    // =========================
+    private static final String FIXED_CNIC_STATUS = "yes";
+    private static final String FIXED_CHANNEL_ID = "APIGEE";
+    private static final String FIXED_ACCOUNT_TYPE = "53";
+
+    // =========================
     // UAT Credentials & URL
+    // =========================
     @Value("${uat.username}")
     private String uatUsername;
     @Value("${uat.password}")
@@ -23,7 +31,9 @@ public class BlinkAccountService {
     @Value("${blinkaccount.uat.url}")
     private String uatUrl;
 
+    // =========================
     // PROD Credentials & URL
+    // =========================
     @Value("${prod.username}")
     private String prodUsername;
     @Value("${prod.password}")
@@ -35,10 +45,17 @@ public class BlinkAccountService {
         this.restTemplate = restTemplate;
     }
 
+    // =========================
     // UAT
+    // =========================
     public BlinkAccountResponse createBlinkAccountUat(BlinkAccountRequest request) {
+        // Set credentials and fixed values
         request.setUserName(uatUsername);
         request.setPassword(uatPassword);
+        request.setCnicStatus(FIXED_CNIC_STATUS);
+        request.setChannelId(FIXED_CHANNEL_ID);
+        request.setAccountType(FIXED_ACCOUNT_TYPE);
+
         try {
             ResponseEntity<BlinkAccountResponse> response =
                     restTemplate.postForEntity(uatUrl, request, BlinkAccountResponse.class);
@@ -50,10 +67,17 @@ public class BlinkAccountService {
         }
     }
 
+    // =========================
     // PROD
+    // =========================
     public BlinkAccountResponse createBlinkAccountProd(BlinkAccountRequest request) {
+        // Set credentials and fixed values
         request.setUserName(prodUsername);
         request.setPassword(prodPassword);
+        request.setCnicStatus(FIXED_CNIC_STATUS);
+        request.setChannelId(FIXED_CHANNEL_ID);
+        request.setAccountType(FIXED_ACCOUNT_TYPE);
+
         try {
             ResponseEntity<BlinkAccountResponse> response =
                     restTemplate.postForEntity(prodUrl, request, BlinkAccountResponse.class);
