@@ -8,10 +8,10 @@ public class BlinkAccountRequest {
     // Hidden (hardcoded) fields
     // =========================================
     @Schema(hidden = true)
-    private String userName = "ApiGee@JS";
+    private String userName ;
 
     @Schema(hidden = true)
-    private String password = "ApiGee@JS";
+    private String password ;
 
     // =========================================
     // Client-provided fields
