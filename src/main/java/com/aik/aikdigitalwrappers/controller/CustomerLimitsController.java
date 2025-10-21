@@ -3,6 +3,7 @@ package com.aik.aikdigitalwrappers.controller;
 import com.aik.aikdigitalwrappers.dto.requests.CustomerLimitsRequest;
 import com.aik.aikdigitalwrappers.dto.responses.CustomerLimitsResponse;
 import com.aik.aikdigitalwrappers.service.CustomerLimitsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,11 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping
 public class CustomerLimitsController {
-    private final CustomerLimitsService customerLimitsService;
-
-    public CustomerLimitsController(CustomerLimitsService customerLimitsService) {
-        this.customerLimitsService = customerLimitsService;
-    }
+    @Autowired
+    private CustomerLimitsService customerLimitsService;
 
 
     //UAT Endpoint
