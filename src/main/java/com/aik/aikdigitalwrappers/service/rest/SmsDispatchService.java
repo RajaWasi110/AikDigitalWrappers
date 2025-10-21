@@ -1,6 +1,6 @@
-package com.aik.aikdigitalwrappers.service;
+package com.aik.aikdigitalwrappers.service.rest;
 
-import com.aik.aikdigitalwrappers.dto.requests.SmsDispatchRequest;
+import com.aik.aikdigitalwrappers.dto.rest.requests.SmsDispatchRequest;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;

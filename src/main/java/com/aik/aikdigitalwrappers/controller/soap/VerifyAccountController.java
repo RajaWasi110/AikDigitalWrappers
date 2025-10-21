@@ -1,9 +1,9 @@
-package com.aik.aikdigitalwrappers.controller;
+package com.aik.aikdigitalwrappers.controller.soap;
 
 
 import com.aik.aikdigitalwrappers.dto.soap.requests.VerifyAccountRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.VerifyAccountResponse;
-import com.aik.aikdigitalwrappers.service.VerifyAccountService;
+import com.aik.aikdigitalwrappers.service.soap.VerifyAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

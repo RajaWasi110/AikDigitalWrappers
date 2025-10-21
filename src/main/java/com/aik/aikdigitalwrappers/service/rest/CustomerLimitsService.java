@@ -1,7 +1,7 @@
-package com.aik.aikdigitalwrappers.service;
+package com.aik.aikdigitalwrappers.service.rest;
 
-import com.aik.aikdigitalwrappers.dto.requests.CustomerLimitsRequest;
-import com.aik.aikdigitalwrappers.dto.responses.CustomerLimitsResponse;
+import com.aik.aikdigitalwrappers.dto.rest.requests.CustomerLimitsRequest;
+import com.aik.aikdigitalwrappers.dto.rest.responses.CustomerLimitsResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;

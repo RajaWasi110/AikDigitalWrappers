@@ -1,4 +1,4 @@
-package com.aik.aikdigitalwrappers.dto.responses;
+package com.aik.aikdigitalwrappers.dto.rest.responses;
 
 import java.util.List;
 

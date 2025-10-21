@@ -1,8 +1,8 @@
-package com.aik.aikdigitalwrappers.controller;
+package com.aik.aikdigitalwrappers.controller.rest;
 
-import com.aik.aikdigitalwrappers.dto.requests.RaastInquiryRequest;
-import com.aik.aikdigitalwrappers.dto.responses.RaastInquiryResponse;
-import com.aik.aikdigitalwrappers.service.RaastInquiryService;
+import com.aik.aikdigitalwrappers.dto.rest.requests.RaastInquiryRequest;
+import com.aik.aikdigitalwrappers.dto.rest.responses.RaastInquiryResponse;
+import com.aik.aikdigitalwrappers.service.rest.RaastInquiryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

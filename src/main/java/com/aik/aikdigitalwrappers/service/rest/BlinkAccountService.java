@@ -1,7 +1,7 @@
-package com.aik.aikdigitalwrappers.service;
+package com.aik.aikdigitalwrappers.service.rest;
 
-import com.aik.aikdigitalwrappers.dto.requests.BlinkAccountRequest;
-import com.aik.aikdigitalwrappers.dto.responses.BlinkAccountResponse;
+import com.aik.aikdigitalwrappers.dto.rest.requests.BlinkAccountRequest;
+import com.aik.aikdigitalwrappers.dto.rest.responses.BlinkAccountResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -14,16 +14,12 @@ public class BlinkAccountService {
 
     private final RestTemplate restTemplate;
 
-    // =========================
-    // Fixed constants (common for both environments)
-    // =========================
+    // Fixed constants
     private static final String FIXED_CNIC_STATUS = "yes";
     private static final String FIXED_CHANNEL_ID = "APIGEE";
     private static final String FIXED_ACCOUNT_TYPE = "53";
 
-    // =========================
     // UAT Credentials & URL
-    // =========================
     @Value("${uat.username}")
     private String uatUsername;
     @Value("${uat.password}")
@@ -31,9 +27,7 @@ public class BlinkAccountService {
     @Value("${blinkaccount.uat.url}")
     private String uatUrl;
 
-    // =========================
     // PROD Credentials & URL
-    // =========================
     @Value("${prod.username}")
     private String prodUsername;
     @Value("${prod.password}")
@@ -45,9 +39,7 @@ public class BlinkAccountService {
         this.restTemplate = restTemplate;
     }
 
-    // =========================
     // UAT
-    // =========================
     public BlinkAccountResponse createBlinkAccountUat(BlinkAccountRequest request) {
         // Set credentials and fixed values
         request.setUserName(uatUsername);
@@ -67,9 +59,7 @@ public class BlinkAccountService {
         }
     }
 
-    // =========================
     // PROD
-    // =========================
     public BlinkAccountResponse createBlinkAccountProd(BlinkAccountRequest request) {
         // Set credentials and fixed values
         request.setUserName(prodUsername);

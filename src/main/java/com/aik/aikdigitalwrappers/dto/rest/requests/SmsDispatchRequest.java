@@ -1,4 +1,4 @@
-package com.aik.aikdigitalwrappers.dto.requests;
+package com.aik.aikdigitalwrappers.dto.rest.requests;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

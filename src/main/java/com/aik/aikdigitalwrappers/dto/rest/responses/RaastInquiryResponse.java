@@ -1,4 +1,4 @@
-package com.aik.aikdigitalwrappers.dto.responses;
+package com.aik.aikdigitalwrappers.dto.rest.responses;
 
 public class RaastInquiryResponse {
     private String responseCode;

@@ -1,8 +1,8 @@
-package com.aik.aikdigitalwrappers.controller;
+package com.aik.aikdigitalwrappers.controller.rest;
 
-import com.aik.aikdigitalwrappers.dto.requests.CustomerLimitsRequest;
-import com.aik.aikdigitalwrappers.dto.responses.CustomerLimitsResponse;
-import com.aik.aikdigitalwrappers.service.CustomerLimitsService;
+import com.aik.aikdigitalwrappers.dto.rest.requests.CustomerLimitsRequest;
+import com.aik.aikdigitalwrappers.dto.rest.responses.CustomerLimitsResponse;
+import com.aik.aikdigitalwrappers.service.rest.CustomerLimitsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

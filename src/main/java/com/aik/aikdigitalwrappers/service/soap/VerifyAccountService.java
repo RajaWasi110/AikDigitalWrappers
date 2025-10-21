@@ -1,4 +1,4 @@
-package com.aik.aikdigitalwrappers.service;
+package com.aik.aikdigitalwrappers.service.soap;
 
 import com.aik.aikdigitalwrappers.dto.soap.requests.VerifyAccountRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.VerifyAccountResponse;

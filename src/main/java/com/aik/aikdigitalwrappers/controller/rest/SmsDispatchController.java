@@ -1,7 +1,7 @@
-package com.aik.aikdigitalwrappers.controller;
+package com.aik.aikdigitalwrappers.controller.rest;
 
-import com.aik.aikdigitalwrappers.dto.requests.SmsDispatchRequest;
-import com.aik.aikdigitalwrappers.service.SmsDispatchService;
+import com.aik.aikdigitalwrappers.dto.rest.requests.SmsDispatchRequest;
+import com.aik.aikdigitalwrappers.service.rest.SmsDispatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
