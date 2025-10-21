@@ -9,11 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping
 public class SmsDispatchController {
 
-    private final SmsDispatchService smsDispatchService;
-
-    public SmsDispatchController(SmsDispatchService smsDispatchService) {
-        this.smsDispatchService = smsDispatchService;
-    }
+    private SmsDispatchService smsDispatchService;
 
     @PostMapping("/uat/sendSms")
     public ResponseEntity<Void> sendSmsUat(@RequestBody SmsDispatchRequest request) {

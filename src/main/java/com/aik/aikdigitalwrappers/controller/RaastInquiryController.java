@@ -3,6 +3,7 @@ package com.aik.aikdigitalwrappers.controller;
 import com.aik.aikdigitalwrappers.dto.requests.RaastInquiryRequest;
 import com.aik.aikdigitalwrappers.dto.responses.RaastInquiryResponse;
 import com.aik.aikdigitalwrappers.service.RaastInquiryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,11 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping
 public class RaastInquiryController {
-    private final RaastInquiryService raastInquiryService;
 
-    public RaastInquiryController(RaastInquiryService raastInquiryService) {
-        this.raastInquiryService = raastInquiryService;
-    }
+    @Autowired
+    private RaastInquiryService raastInquiryService;
 
     //UAT Endpoint
     @PostMapping("/uat/raastInquiry")
