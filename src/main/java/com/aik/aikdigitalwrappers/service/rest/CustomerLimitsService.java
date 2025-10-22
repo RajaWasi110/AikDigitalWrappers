@@ -28,7 +28,7 @@ public class CustomerLimitsService {
     //UAT Service
     public CustomerLimitsResponse createCustomerLimitsUat(CustomerLimitsRequest request) {
         try {
-            ResponseEntity<CustomerLimitsResponse> response = restTemplate.postForEntity(prodUrl, request, CustomerLimitsResponse.class);
+            ResponseEntity<CustomerLimitsResponse> response = restTemplate.postForEntity(uatUrl, request, CustomerLimitsResponse.class);
             return response.getBody();
         } catch (HttpStatusCodeException ex) {
             throw new ExternalServiceException("UAT Raast Inquiry API Failed", ex.getRawStatusCode(), ex.getResponseBodyAsString());
@@ -41,12 +41,12 @@ public class CustomerLimitsService {
     //PROD Service
     public CustomerLimitsResponse createCustomerLimitsProd(CustomerLimitsRequest request) {
         try {
-            ResponseEntity<CustomerLimitsResponse> response = restTemplate.postForEntity(uatUrl, request, CustomerLimitsResponse.class);
+            ResponseEntity<CustomerLimitsResponse> response = restTemplate.postForEntity(prodUrl, request, CustomerLimitsResponse.class);
             return response.getBody();
         } catch (HttpStatusCodeException ex) {
-            throw new ExternalServiceException("UAT Raast Inquiry API Failed", ex.getRawStatusCode(), ex.getResponseBodyAsString());
+            throw new ExternalServiceException("Prod Raast Inquiry API Failed", ex.getRawStatusCode(), ex.getResponseBodyAsString());
         } catch (Exception ex) {
-            throw new ExternalServiceException("Unexpected error calling UAT Raast Inquiry API", 500, ex.getMessage());
+            throw new ExternalServiceException("Unexpected error calling Prod Raast Inquiry API", 500, ex.getMessage());
 
         }
     }
