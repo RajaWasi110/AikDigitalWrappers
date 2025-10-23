@@ -3,6 +3,7 @@ package com.aik.aikdigitalwrappers.service.soap;
 import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.MPinLoginResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
+import com.aik.aikdigitalwrappers.util.HashUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,26 +21,15 @@ public class MPinLoginService {
 
     private final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
 
-    @Value("${mpinlogin.uat.url}")
-    private String UAT_URL;
-
-    @Value("${mpinlogin.prod.url}")
-    private String PROD_URL;
-
-    @Value("${uat.username}")
-    private String username;
-
-    @Value("${uat.password}")
-    private String password;
+    @Value("${mpinlogin.uat.url}") private String UAT_URL;
+    @Value("${mpinlogin.prod.url}") private String PROD_URL;
+    @Value("${uat.username}") private String username;
+    @Value("${uat.password}") private String password;
+    @Value("${uat.secret-key:}") private String secretKey;
 
     private static final String SOAP_ACTION = "tem:LoginPinRequest";
-
-    // Hardcoded values
-
     private static final String CHANNEL_ID = "NOVA";
     private static final String TERMINAL_ID = "NOVA";
-
-
 
     public MPinLoginResponse loginMPinUat(MPinLoginRequest request) {
         return sendSoapRequest(UAT_URL, request, "UAT");
@@ -53,28 +43,28 @@ public class MPinLoginService {
         try {
             log.info("▶️ Sending MPinLogin SOAP request [{}] to {}", env, url);
 
-            String soapRequest = buildSoapEnvelope(req);
-            log.debug("SOAP Request Payload [{}]:\n{}", env, soapRequest);
+            String hashData = generateHash(req);
+            String soapRequest = buildSoapEnvelope(req, hashData);
+            log.debug("🧾 SOAP Request [{}]:\n{}", env, soapRequest);
 
             Source source = new StreamSource(new StringReader(soapRequest));
             StringWriter writer = new StringWriter();
-
             webServiceTemplate.sendSourceAndReceiveToResult(url, source, new StreamResult(writer));
 
             String soapResponse = writer.toString();
-            log.debug("SOAP Response [{}]:\n{}", env, soapResponse);
+            log.debug("📥 SOAP Response [{}]:\n{}", env, soapResponse);
 
             MPinLoginResponse response = parseSoapResponse(soapResponse);
             log.info("✅ MPinLogin [{}] Response: {}", env, response);
             return response;
 
         } catch (Exception e) {
-            log.error("MPinLogin {} API failed: {}", env, e.getMessage(), e);
+            log.error("❌ MPinLogin {} API failed: {}", env, e.getMessage(), e);
             throw new ExternalServiceException("MPinLogin " + env + " SOAP API failed", 500, e.getMessage());
         }
     }
 
-    private String buildSoapEnvelope(MPinLoginRequest r) {
+    private String buildSoapEnvelope(MPinLoginRequest r, String hashData) {
         return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">" +
                 "<soapenv:Header/>" +
                 "<soapenv:Body>" +
@@ -89,14 +79,35 @@ public class MPinLoginService {
                 "<PIN>" + r.getPin() + "</PIN>" +
                 "<Reserved1>" + safeValue(r.getReserved1()) + "</Reserved1>" +
                 "<Reserved2>" + safeValue(r.getReserved2()) + "</Reserved2>" +
-                "<HashData>3773696939525F33D9F56862AFB8472118FB6B7B08FE1E6A7A9A592A62E8FA58</HashData>" +
+                "<HashData>" + hashData + "</HashData>" +
                 "</tem:LoginPinRequest>" +
                 "</soapenv:Body>" +
                 "</soapenv:Envelope>";
     }
 
+    private String generateHash(MPinLoginRequest r) {
+        // Include all parameters in the hash
+        String rawData = username
+                + password
+                + r.getMobileNumber()
+                + r.getPin()
+                + r.getDateTime()
+                + r.getRrn()
+                + safeValue(r.getReserved1())
+                + safeValue(r.getReserved2());
+
+        if (secretKey != null && !secretKey.isEmpty()) {
+            rawData += secretKey;
+        }
+
+        log.debug("🔐 Raw data for hash: {}", rawData);
+        String hash = HashUtil.generateSHA256(rawData);
+        log.debug("✅ Generated HashData: {}", hash);
+        return hash;
+    }
+
     private String safeValue(String value) {
-        return (value == null) ? "" : value;
+        return value == null ? "" : value;
     }
 
     private MPinLoginResponse parseSoapResponse(String xml) {

@@ -3,6 +3,7 @@ package com.aik.aikdigitalwrappers.service.soap;
 import com.aik.aikdigitalwrappers.dto.soap.requests.ResetPinRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.ResetPinResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
+import com.aik.aikdigitalwrappers.util.HashUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ public class ResetPinService {
 
     private final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
 
-    // ✅ Inject values from application.properties
     @Value("${resetpin.uat.url}")
     private String uatUrl;
 
@@ -42,10 +42,8 @@ public class ResetPinService {
     @Value("${resetpin.action}")
     private String soapAction;
 
-    //Fixed constants
     private static final String CHANNEL_ID = "NOVA";
     private static final String TERMINAL_ID = "NOVA";
-    private static final String HASH_DATA = "A5D30BA001D62A5F39B1E555ECEACE2C6AABF97C6170F4F7019B4368806E696D";
 
     // ---------- PUBLIC METHODS ----------
     public ResetPinResponse resetPinUat(ResetPinRequest request) {
@@ -62,7 +60,19 @@ public class ResetPinService {
         try {
             log.info("Sending ResetPIN SOAP request [{}] to {}", env, url);
 
-            String soapRequest = buildSoapEnvelope(username, password, req);
+            // Combine all parameters into a single string for SHA-256 hashing
+            String hashInput = username + password +
+                    safeValue(req.getMobileNumber()) +
+                    safeValue(req.getRrn()) +
+                    safeValue(req.getNewLoginPin()) +
+                    safeValue(req.getConfirmLoginPin()) +
+                    safeValue(req.getCnic()) +
+                    safeValue(req.getReserved1()) +
+                    safeValue(req.getReserved2());
+
+            String hashData = HashUtil.sha256(hashInput);
+
+            String soapRequest = buildSoapEnvelope(username, password, req, hashData);
             log.debug("SOAP Request [{}]:\n{}", env, soapRequest);
 
             Source source = new StreamSource(new StringReader(soapRequest));
@@ -74,18 +84,19 @@ public class ResetPinService {
             log.debug("SOAP Response [{}]:\n{}", env, soapResponse);
 
             ResetPinResponse response = parseSoapResponse(soapResponse);
-            log.info("ResetPIN [{}] Response: {}", env, response);
+            log.info("✅ ResetPIN [{}] Response: {}", env, response);
 
             return response;
 
         } catch (Exception e) {
             log.error("ResetPIN {} API failed: {}", env, e.getMessage(), e);
-            throw new ExternalServiceException("ResetPIN " + env + " SOAP API failed", 500, e.getMessage());
+            // Fixed constructor usage
+            throw new ExternalServiceException("ResetPIN " + env + " SOAP API failed", e);
         }
     }
 
     // ---------- BUILD SOAP ENVELOPE ----------
-    private String buildSoapEnvelope(String username, String password, ResetPinRequest r) {
+    private String buildSoapEnvelope(String username, String password, ResetPinRequest r, String hashData) {
         return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
                 "xmlns:tem=\"http://tempuri.org/\">" +
                 "<soapenv:Header/>" +
@@ -93,17 +104,17 @@ public class ResetPinService {
                 "<tem:ResetPinRequest>" +
                 "<UserName>" + username + "</UserName>" +
                 "<Password>" + password + "</Password>" +
-                "<MobileNumber>" + r.getMobileNumber() + "</MobileNumber>" +
-                "<DateTime>" + r.getDateTime() + "</DateTime>" +
-                "<Rrn>" + r.getRrn() + "</Rrn>" +
+                "<MobileNumber>" + safeValue(r.getMobileNumber()) + "</MobileNumber>" +
+                "<DateTime>" + safeValue(r.getDateTime()) + "</DateTime>" +
+                "<Rrn>" + safeValue(r.getRrn()) + "</Rrn>" +
                 "<ChannelId>" + CHANNEL_ID + "</ChannelId>" +
                 "<TerminalId>" + TERMINAL_ID + "</TerminalId>" +
-                "<NewLoginPin>" + r.getNewLoginPin() + "</NewLoginPin>" +
-                "<ConfirmLoginPin>" + r.getConfirmLoginPin() + "</ConfirmLoginPin>" +
-                "<CNIC>" + r.getCnic() + "</CNIC>" +
+                "<NewLoginPin>" + safeValue(r.getNewLoginPin()) + "</NewLoginPin>" +
+                "<ConfirmLoginPin>" + safeValue(r.getConfirmLoginPin()) + "</ConfirmLoginPin>" +
+                "<CNIC>" + safeValue(r.getCnic()) + "</CNIC>" +
                 "<Reserved1>" + safeValue(r.getReserved1()) + "</Reserved1>" +
                 "<Reserved2>" + safeValue(r.getReserved2()) + "</Reserved2>" +
-                "<HashData>" + HASH_DATA + "</HashData>" +
+                "<HashData>" + hashData + "</HashData>" +
                 "</tem:ResetPinRequest>" +
                 "</soapenv:Body>" +
                 "</soapenv:Envelope>";

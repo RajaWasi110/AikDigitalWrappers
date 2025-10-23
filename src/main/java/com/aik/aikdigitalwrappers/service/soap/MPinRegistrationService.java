@@ -3,6 +3,7 @@ package com.aik.aikdigitalwrappers.service.soap;
 import com.aik.aikdigitalwrappers.dto.soap.requests.MPinRegistrationRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.MPinRegistrationResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
+import com.aik.aikdigitalwrappers.util.HashUtil;  // ✅ Hash utility
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,25 +21,14 @@ public class MPinRegistrationService {
 
     private final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
 
-    // 🔹 Load from application.properties
-    @Value("${uat.username}")
-    private String uatUsername;
-    @Value("${uat.password}")
-    private String uatPassword;
+    @Value("${uat.username}") private String uatUsername;
+    @Value("${uat.password}") private String uatPassword;
+    @Value("${prod.username}") private String prodUsername;
+    @Value("${prod.password}") private String prodPassword;
+    @Value("${mpinregistration.uat.url}") private String uatUrl;
+    @Value("${mpinregistration.prod.url}") private String prodUrl;
+    @Value("${mpinregistration.action}") private String soapAction;
 
-    @Value("${prod.username}")
-    private String prodUsername;
-    @Value("${prod.password}")
-    private String prodPassword;
-
-    @Value("${mpinregistration.uat.url}")
-    private String uatUrl;
-    @Value("${mpinregistration.prod.url}")
-    private String prodUrl;
-    @Value("${mpinregistration.action}")
-    private String soapAction;
-
-    // 🔹 Hardcoded
     private static final String CHANNEL_ID = "NOVA";
     private static final String TERMINAL_ID = "NOVA";
 
@@ -53,29 +43,29 @@ public class MPinRegistrationService {
     private MPinRegistrationResponse sendSoapRequest(String url, String username, String password,
                                                      MPinRegistrationRequest r, String env) {
         try {
-            log.info("Sending MPINRegistration SOAP request [{}] to {}", env, url);
+            log.info("▶️ Sending MPINRegistration SOAP request [{}] to {}", env, url);
 
-            String soapRequest = buildSoapEnvelope(r, username, password);
-            log.debug("SOAP Request [{}]:\n{}", env, soapRequest);
+            String hashData = generateHash(r, username, password);
+            String soapRequest = buildSoapEnvelope(r, username, password, hashData);
+            log.debug("🧾 SOAP Request [{}]:\n{}", env, soapRequest);
 
             Source source = new StreamSource(new StringReader(soapRequest));
             StringWriter writer = new StringWriter();
-
             webServiceTemplate.sendSourceAndReceiveToResult(url, source, new StreamResult(writer));
             String soapResponse = writer.toString();
-            log.debug("SOAP Response [{}]:\n{}", env, soapResponse);
+            log.debug("📥 SOAP Response [{}]:\n{}", env, soapResponse);
 
             MPinRegistrationResponse response = parseSoapResponse(soapResponse);
-            log.info("MPINRegistration [{}] Response: {}", env, response);
+            log.info("✅ MPINRegistration [{}] Response: {}", env, response);
             return response;
 
         } catch (Exception e) {
-            log.error("MPINRegistration {} API failed: {}", env, e.getMessage(), e);
+            log.error("❌ MPINRegistration {} API failed: {}", env, e.getMessage(), e);
             throw new ExternalServiceException("MPINRegistration " + env + " SOAP API failed", 500, e.getMessage());
         }
     }
 
-    private String buildSoapEnvelope(MPinRegistrationRequest r, String username, String password) {
+    private String buildSoapEnvelope(MPinRegistrationRequest r, String username, String password, String hashData) {
         return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">" +
                 "<soapenv:Header/>" +
                 "<soapenv:Body>" +
@@ -94,10 +84,22 @@ public class MPinRegistrationService {
                 "<Reserved3>" + safeValue(r.getReserved3()) + "</Reserved3>" +
                 "<Reserved4>" + safeValue(r.getReserved4()) + "</Reserved4>" +
                 "<Reserved5>" + safeValue(r.getReserved5()) + "</Reserved5>" +
-                "<HashData>00C4EEC3FE0EC19B3B7680E366A46F92211937845AB7251F5CD880F52B2BF74A</HashData>" +
+                "<HashData>" + hashData + "</HashData>" +
                 "</tem:mpinRegistrationRequest>" +
                 "</soapenv:Body>" +
                 "</soapenv:Envelope>";
+    }
+
+    private String generateHash(MPinRegistrationRequest r, String username, String password) {
+        // Include all parameters used in SOAP in the hash
+        String rawData = username + password + r.getMobileNumber() + r.getMpin() + r.getConfirmMpin()
+                + r.getDateTime() + r.getRrn() + safeValue(r.getReserved1()) + safeValue(r.getReserved2())
+                + safeValue(r.getReserved3()) + safeValue(r.getReserved4()) + safeValue(r.getReserved5());
+
+        log.debug("🔐 Raw data for hash: {}", rawData);
+        String hash = HashUtil.generateSHA256(rawData);
+        log.debug("✅ Generated HashData: {}", hash);
+        return hash;
     }
 
     private String safeValue(String value) {

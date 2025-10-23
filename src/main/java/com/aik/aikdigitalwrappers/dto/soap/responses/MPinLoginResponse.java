@@ -1,13 +1,15 @@
 package com.aik.aikdigitalwrappers.dto.soap.responses;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class MPinLoginResponse {
+
+    public MPinLoginResponse(String rrn1, String code, String desc, String datetime, String hash) {
+    }
     private String rrn;
     private String responseCode;
     private String responseDescription;

@@ -1,37 +1,14 @@
 package com.aik.aikdigitalwrappers.dto.soap.requests;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-
 public class VerifyAccountRequest {
-
-    @Schema(example = "4521864349575")
     private String cnic;
-
-    @Schema(example = "20251004123630")
     private String dateTime;
-
-    @Schema(example = "03132730408")
     private String mobileNumber;
-
-    @Schema(example = "0861040102325230")
     private String rrn;
-
-    @Schema(example = "")
     private String reserved2;
-
-    @Schema(example = "")
     private String reserved3;
-
-    @Schema(example = "")
     private String reserved4;
-
-    @Schema(example = "")
     private String reserved5;
-
-    @Schema(example = "SHA256 Hash Value")
-    private String hashData;
-
 
     public String getCnic() {
         return cnic;
@@ -95,13 +72,5 @@ public class VerifyAccountRequest {
 
     public void setReserved5(String reserved5) {
         this.reserved5 = reserved5;
-    }
-
-    public String getHashData() {
-        return hashData;
-    }
-
-    public void setHashData(String hashData) {
-        this.hashData = hashData;
     }
 }
