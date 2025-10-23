@@ -6,8 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.example</groupId>
-	<artifactId>blinkaccount</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>aikdigitalwrappers</artifactId>
 	<packaging>war</packaging>
 
 	<parent>
@@ -22,6 +21,20 @@
 	</properties>
 
 	<dependencies>
+
+
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjrt</artifactId>
+			<version>1.9.22</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>1.9.22</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -111,8 +124,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
+					<source>16</source>
+					<target>16</target>
 				</configuration>
 			</plugin>
 
