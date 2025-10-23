@@ -4,6 +4,7 @@ import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.MPinLoginResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.ws.client.core.WebServiceTemplate;
 
@@ -19,16 +20,26 @@ public class MPinLoginService {
 
     private final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
 
+    @Value("${mpinlogin.uat.url}")
+    private String UAT_URL;
+
+    @Value("${mpinlogin.prod.url}")
+    private String PROD_URL;
+
+    @Value("${uat.username}")
+    private String username;
+
+    @Value("${uat.password}")
+    private String password;
+
     private static final String SOAP_ACTION = "tem:LoginPinRequest";
 
     // Hardcoded values
-    private static final String USERNAME = "ApiGee@JS";
-    private static final String PASSWORD = "ApiGee@JS";
+
     private static final String CHANNEL_ID = "NOVA";
     private static final String TERMINAL_ID = "NOVA";
 
-    private static final String UAT_URL = "http://192.168.130.31:7070/js-blb-integration/JsBLBIntegration";
-    private static final String PROD_URL = "http://192.168.130.32:7070/js-blb-integration/JsBLBIntegration";
+
 
     public MPinLoginResponse loginMPinUat(MPinLoginRequest request) {
         return sendSoapRequest(UAT_URL, request, "UAT");
@@ -58,7 +69,7 @@ public class MPinLoginService {
             return response;
 
         } catch (Exception e) {
-            log.error("❌ MPinLogin {} API failed: {}", env, e.getMessage(), e);
+            log.error("MPinLogin {} API failed: {}", env, e.getMessage(), e);
             throw new ExternalServiceException("MPinLogin " + env + " SOAP API failed", 500, e.getMessage());
         }
     }
@@ -68,8 +79,8 @@ public class MPinLoginService {
                 "<soapenv:Header/>" +
                 "<soapenv:Body>" +
                 "<tem:LoginPinRequest>" +
-                "<UserName>" + USERNAME + "</UserName>" +
-                "<Password>" + PASSWORD + "</Password>" +
+                "<UserName>" + username + "</UserName>" +
+                "<Password>" + password + "</Password>" +
                 "<MobileNumber>" + r.getMobileNumber() + "</MobileNumber>" +
                 "<DateTime>" + r.getDateTime() + "</DateTime>" +
                 "<Rrn>" + r.getRrn() + "</Rrn>" +
