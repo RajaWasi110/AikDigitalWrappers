@@ -67,11 +67,29 @@ public class LoggingAspect {
     // After Returning Advice
     @AfterReturning(value = "applicationMethods()", returning = "result")
     public void logAfterReturning(JoinPoint joinPoint, Object result) {
-        Object body = ((ResponseEntity<?>) result).getBody();
-        logger.info("Exiting method: {} with result: {}",
-                joinPoint.getSignature().getName(),
-                body);
+        try {
+            Object responseBody = null;
+
+            // If it's a ResponseEntity, extract the body
+            if (result instanceof ResponseEntity<?>) {
+                responseBody = ((ResponseEntity<?>) result).getBody();
+            } else {
+                responseBody = result;
+            }
+
+            // Convert response to JSON
+            String responseJson = convertToJson(responseBody);
+
+            logger.info("Exiting method: {} with result: {}",
+                    joinPoint.getSignature().getName(),
+                    responseJson);
+        } catch (Exception e) {
+            logger.warn("Failed to log response for method: {} due to: {}",
+                    joinPoint.getSignature().getName(),
+                    e.getMessage());
+        }
     }
+
 
     // After Throwing Advice
     @AfterThrowing(value = "applicationMethods()", throwing = "exception")
