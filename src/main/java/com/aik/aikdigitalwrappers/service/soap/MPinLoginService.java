@@ -1,131 +1,137 @@
 package com.aik.aikdigitalwrappers.service.soap;
 
+import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginRequest;
 import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginSoapRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.MPinLoginResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
-import com.aik.aikdigitalwrappers.util.HashUtil;
+import com.aik.aikdigitalwrappers.util.Util;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.ws.client.core.WebServiceTemplate;
 
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.StringReader;
-import java.io.StringWriter;
-
-@Service
 @Slf4j
+@Service
 public class MPinLoginService {
 
-    private final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
+    @Value("${mpinlogin.uat.url}")
+    private String uatUrl;
 
-    @Value("${mpinlogin.uat.url}") private String UAT_URL;
-    @Value("${mpinlogin.prod.url}") private String PROD_URL;
-    @Value("${uat.username}") private String username;
-    @Value("${uat.password}") private String password;
-    @Value("${uat.secret-key:}") private String secretKey;
+    @Value("${mpinlogin.prod.url}")
+    private String prodUrl;
 
-    private static final String SOAP_ACTION = "tem:LoginPinRequest";
+    @Value("${uat.username}")
+    private String uatUsername;
+
+    @Value("${uat.password}")
+    private String uatPassword;
+
+    @Value("${prod.username}")
+    private String prodUsername;
+
+    @Value("${prod.password}")
+    private String prodPassword;
+
+    @Value("${mpinlogin.action}")
+    private String soapAction;
+
     private static final String CHANNEL_ID = "NOVA";
     private static final String TERMINAL_ID = "NOVA";
 
-    public MPinLoginResponse loginMPinUat(MPinLoginSoapRequest request) {
-        return sendSoapRequest(UAT_URL, request, "UAT");
+    // ----------- UAT -----------
+    public MPinLoginResponse mPinLoginUat(MPinLoginRequest request) {
+        MPinLoginSoapRequest soapRequest = new MPinLoginSoapRequest();
+        soapRequest.setUserName(uatUsername);
+        soapRequest.setPassword(uatPassword);
+        soapRequest.setMobileNumber(request.getMobileNumber());
+        soapRequest.setDateTime(request.getDateTime());
+        soapRequest.setRrn(request.getRrn());
+        soapRequest.setChannelId(CHANNEL_ID);
+        soapRequest.setTerminalId(TERMINAL_ID);
+        soapRequest.setPin(request.getPin());
+        soapRequest.setReserved1(request.getReserved1());
+        soapRequest.setReserved2(request.getReserved2());
+        return mPinLoginResponse(soapRequest, uatUrl, "U");
     }
 
-    public MPinLoginResponse loginMPinProd(MPinLoginSoapRequest request) {
-        return sendSoapRequest(PROD_URL, request, "PROD");
+    // ----------- PROD -----------
+    public MPinLoginResponse mPinLoginProd(MPinLoginSoapRequest request) {
+        MPinLoginSoapRequest soapRequest = new MPinLoginSoapRequest();
+        soapRequest.setUserName(prodUsername);
+        soapRequest.setPassword(prodPassword);
+        soapRequest.setMobileNumber(request.getMobileNumber());
+        soapRequest.setDateTime(request.getDateTime());
+        soapRequest.setRrn(request.getRrn());
+        soapRequest.setChannelId(CHANNEL_ID);
+        soapRequest.setTerminalId(TERMINAL_ID);
+        soapRequest.setPin(request.getPin());
+        soapRequest.setReserved1(request.getReserved1());
+        soapRequest.setReserved2(request.getReserved2());
+        return mPinLoginResponse(soapRequest, prodUrl, "P");
     }
 
-    private MPinLoginResponse sendSoapRequest(String url, MPinLoginSoapRequest req, String env) {
+    // ----------- Core Logic -----------
+    public MPinLoginResponse mPinLoginResponse(MPinLoginSoapRequest request, String url, String env) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(request.getUserName())
+                .append(request.getPassword())
+                .append(request.getMobileNumber())
+                .append(request.getDateTime())
+                .append(request.getRrn())
+                .append(request.getChannelId())
+                .append(request.getTerminalId())
+                .append(request.getPin())
+                .append(request.getReserved1())
+                .append(request.getReserved2());
+
+        String hashData = DigestUtils.sha256Hex(sb.toString());
+        request.setHashData(hashData);
+
+        String soapRequest =
+                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\n" +
+                        "   <soapenv:Header/>\n" +
+                        "   <soapenv:Body>\n" +
+                        "      <tem:LoginPinRequest>\n" +
+                        "         <UserName>" + request.getUserName() + "</UserName>\n" +
+                        "         <Password>" + request.getPassword() + "</Password>\n" +
+                        "         <MobileNumber>" + request.getMobileNumber() + "</MobileNumber>\n" +
+                        "         <DateTime>" + request.getDateTime() + "</DateTime>\n" +
+                        "         <Rrn>" + request.getRrn() + "</Rrn>\n" +
+                        "         <ChannelId>" + request.getChannelId() + "</ChannelId>\n" +
+                        "         <TerminalId>" + request.getTerminalId() + "</TerminalId>\n" +
+                        "         <PIN>" + request.getPin() + "</PIN>\n" +
+                        "         <Reserved1>" + request.getReserved1() + "</Reserved1>\n" +
+                        "         <Reserved2>" + request.getReserved2() + "</Reserved2>\n" +
+                        "         <HashData>" + hashData + "</HashData>\n" +
+                        "      </tem:LoginPinRequest>\n" +
+                        "   </soapenv:Body>\n" +
+                        "</soapenv:Envelope>";
+
+        MPinLoginResponse response = new MPinLoginResponse();
+
         try {
-            log.info("▶️ Sending MPinLogin SOAP request [{}] to {}", env, url);
-
-            String hashData = generateHash(req);
-            String soapRequest = buildSoapEnvelope(req, hashData);
-            log.debug("🧾 SOAP Request [{}]:\n{}", env, soapRequest);
-
-            Source source = new StreamSource(new StringReader(soapRequest));
-            StringWriter writer = new StringWriter();
-            webServiceTemplate.sendSourceAndReceiveToResult(url, source, new StreamResult(writer));
-
-            String soapResponse = writer.toString();
-            log.debug("📥 SOAP Response [{}]:\n{}", env, soapResponse);
-
-            MPinLoginResponse response = parseSoapResponse(soapResponse);
-            log.info("✅ MPinLogin [{}] Response: {}", env, response);
-            return response;
-
+            JSONObject json = Util.getSoapResponseFromDebitWsdl(url, soapRequest);
+            if (json != null) {
+                json = json.getJSONObject("soap:Envelope")
+                        .getJSONObject("soap:Body")
+                        .getJSONObject("ns2:loginPinResponse");
+                String code = json.optString("ResponseCode", null);
+                if (code != null) {
+                    response.setResponseCode(code);
+                    response.setResponseDescription(
+                            code.equals("00") ? "Successful"
+                                    : json.optString("ResponseDescription", "Unknown error"));
+                } else {
+                    response.setResponseDescription("Service not available");
+                }
+            } else {
+                response.setResponseDescription("Service not available");
+            }
         } catch (Exception e) {
-            log.error("❌ MPinLogin {} API failed: {}", env, e.getMessage(), e);
-            throw new ExternalServiceException("MPinLogin " + env + " SOAP API failed", 500, e.getMessage());
-        }
-    }
-
-    private String buildSoapEnvelope(MPinLoginSoapRequest r, String hashData) {
-        return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">" +
-                "<soapenv:Header/>" +
-                "<soapenv:Body>" +
-                "<tem:LoginPinRequest>" +
-                "<UserName>" + username + "</UserName>" +
-                "<Password>" + password + "</Password>" +
-                "<MobileNumber>" + r.getMobileNumber() + "</MobileNumber>" +
-                "<DateTime>" + r.getDateTime() + "</DateTime>" +
-                "<Rrn>" + r.getRrn() + "</Rrn>" +
-                "<ChannelId>" + CHANNEL_ID + "</ChannelId>" +
-                "<TerminalId>" + TERMINAL_ID + "</TerminalId>" +
-                "<PIN>" + r.getPin() + "</PIN>" +
-                "<Reserved1>" + safeValue(r.getReserved1()) + "</Reserved1>" +
-                "<Reserved2>" + safeValue(r.getReserved2()) + "</Reserved2>" +
-                "<HashData>" + hashData + "</HashData>" +
-                "</tem:LoginPinRequest>" +
-                "</soapenv:Body>" +
-                "</soapenv:Envelope>";
-    }
-
-    private String generateHash(MPinLoginSoapRequest r) {
-        // Include all parameters in the hash
-        String rawData = username
-                + password
-                + r.getMobileNumber()
-                + r.getPin()
-                + r.getDateTime()
-                + r.getRrn()
-                + safeValue(r.getReserved1())
-                + safeValue(r.getReserved2());
-
-        if (secretKey != null && !secretKey.isEmpty()) {
-            rawData += secretKey;
+            response.setResponseDescription(e.getLocalizedMessage());
         }
 
-        log.debug("🔐 Raw data for hash: {}", rawData);
-        String hash = HashUtil.generateSHA256(rawData);
-        log.debug("✅ Generated HashData: {}", hash);
-        return hash;
-    }
-
-    private String safeValue(String value) {
-        return value == null ? "" : value;
-    }
-
-    private MPinLoginResponse parseSoapResponse(String xml) {
-        String rrn = getTagValue(xml, "Rrn");
-        String code = getTagValue(xml, "ResponseCode");
-        String desc = getTagValue(xml, "ResponseDescription");
-        String datetime = getTagValue(xml, "ResponseDateTime");
-        String hash = getTagValue(xml, "HashData");
-        return new MPinLoginResponse(rrn, code, desc, datetime, hash);
-    }
-
-    private String getTagValue(String xml, String tag) {
-        try {
-            int start = xml.indexOf("<" + tag + ">") + tag.length() + 2;
-            int end = xml.indexOf("</" + tag + ">");
-            return (start > tag.length() && end > start) ? xml.substring(start, end) : "";
-        } catch (Exception e) {
-            return "";
-        }
+        return response;
     }
 }
