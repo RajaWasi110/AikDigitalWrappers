@@ -1,25 +1,18 @@
 package com.aik.aikdigitalwrappers.service.soap;
 
 import com.aik.aikdigitalwrappers.dto.soap.requests.ResetPinRequest;
+import com.aik.aikdigitalwrappers.dto.soap.requests.ResetPinSoapRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.ResetPinResponse;
-import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
-import com.aik.aikdigitalwrappers.util.HashUtil;
+import com.aik.aikdigitalwrappers.util.Util;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.ws.client.core.WebServiceTemplate;
 
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.StringReader;
-import java.io.StringWriter;
-
-@Service
 @Slf4j
+@Service
 public class ResetPinService {
-
-    private final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
 
     @Value("${resetpin.uat.url}")
     private String uatUrl;
@@ -45,102 +38,111 @@ public class ResetPinService {
     private static final String CHANNEL_ID = "NOVA";
     private static final String TERMINAL_ID = "NOVA";
 
-    // ---------- PUBLIC METHODS ----------
+    // ---------- Public Endpoints ----------
     public ResetPinResponse resetPinUat(ResetPinRequest request) {
-        return sendSoapRequest(uatUrl, uatUsername, uatPassword, request, "UAT");
+        ResetPinSoapRequest resetPinSoapRequest = new ResetPinSoapRequest();
+        resetPinSoapRequest.setUserName(uatUsername);
+        resetPinSoapRequest.setPassword(uatPassword);
+        resetPinSoapRequest.setMobileNumber(request.getMobileNumber());
+        resetPinSoapRequest.setDateTime(request.getDateTime());
+        resetPinSoapRequest.setRrn(request.getRrn());
+        resetPinSoapRequest.setChannelId(CHANNEL_ID);
+        resetPinSoapRequest.setTerminalId(TERMINAL_ID);
+        resetPinSoapRequest.setNewLoginPin(request.getNewLoginPin());
+        resetPinSoapRequest.setConfirmLoginPin(request.getConfirmLoginPin());
+        resetPinSoapRequest.setCnic(request.getCnic());
+        resetPinSoapRequest.setReserved1(request.getReserved1());
+        resetPinSoapRequest.setReserved2(request.getReserved2());
+        return resetPinResponse(resetPinSoapRequest, uatUrl, "U");
     }
 
     public ResetPinResponse resetPinProd(ResetPinRequest request) {
-        return sendSoapRequest(prodUrl, prodUsername, prodPassword, request, "PROD");
+        ResetPinSoapRequest resetPinSoapRequest = new ResetPinSoapRequest();
+        resetPinSoapRequest.setUserName(prodUsername);
+        resetPinSoapRequest.setPassword(prodPassword);
+        resetPinSoapRequest.setMobileNumber(request.getMobileNumber());
+        resetPinSoapRequest.setDateTime(request.getDateTime());
+        resetPinSoapRequest.setRrn(request.getRrn());
+        resetPinSoapRequest.setChannelId(CHANNEL_ID);
+        resetPinSoapRequest.setTerminalId(TERMINAL_ID);
+        resetPinSoapRequest.setNewLoginPin(request.getNewLoginPin());
+        resetPinSoapRequest.setConfirmLoginPin(request.getConfirmLoginPin());
+        resetPinSoapRequest.setCnic(request.getCnic());
+        resetPinSoapRequest.setReserved1(request.getReserved1());
+        resetPinSoapRequest.setReserved2(request.getReserved2());
+        return resetPinResponse(resetPinSoapRequest, prodUrl, "P");
     }
 
-    // ---------- CORE SOAP LOGIC ----------
-    private ResetPinResponse sendSoapRequest(String url, String username, String password,
-                                             ResetPinRequest req, String env) {
+    // ---------- Core SOAP Logic ----------
+    public ResetPinResponse resetPinResponse(ResetPinSoapRequest resetPinRequest, String url, String env) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(resetPinRequest.getUserName())
+                .append(resetPinRequest.getPassword())
+                .append(resetPinRequest.getMobileNumber())
+                .append(resetPinRequest.getDateTime())
+                .append(resetPinRequest.getRrn())
+                .append(resetPinRequest.getChannelId())
+                .append(resetPinRequest.getTerminalId())
+                .append(resetPinRequest.getNewLoginPin())
+                .append(resetPinRequest.getConfirmLoginPin())
+                .append(resetPinRequest.getCnic())
+                .append(resetPinRequest.getReserved1())
+                .append(resetPinRequest.getReserved2());
+
+        String hashData = DigestUtils.sha256Hex(stringBuilder.toString());
+
+        StringBuilder requestStringBuilder = new StringBuilder("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\n" +
+                "   <soapenv:Header/>\n" +
+                "   <soapenv:Body>\n" +
+                "      <tem:ResetPinRequest>\n" +
+                "         <UserName>" + resetPinRequest.getUserName() + "</UserName>\n" +
+                "         <Password>" + resetPinRequest.getPassword() + "</Password>\n" +
+                "         <MobileNumber>" + resetPinRequest.getMobileNumber() + "</MobileNumber>\n" +
+                "         <DateTime>" + resetPinRequest.getDateTime() + "</DateTime>\n" +
+                "         <Rrn>" + resetPinRequest.getRrn() + "</Rrn>\n" +
+                "         <ChannelId>" + resetPinRequest.getChannelId() + "</ChannelId>\n" +
+                "         <TerminalId>" + resetPinRequest.getTerminalId() + "</TerminalId>\n" +
+                "         <NewLoginPin>" + resetPinRequest.getNewLoginPin() + "</NewLoginPin>\n" +
+                "         <ConfirmLoginPin>" + resetPinRequest.getConfirmLoginPin() + "</ConfirmLoginPin>\n" +
+                "         <CNIC>" + resetPinRequest.getCnic() + "</CNIC>\n" +
+                "         <Reserved1>" + resetPinRequest.getReserved1() + "</Reserved1>\n" +
+                "         <Reserved2>" + resetPinRequest.getReserved2() + "</Reserved2>\n" +
+                "         <HashData>" + hashData + "</HashData>\n" +
+                "      </tem:ResetPinRequest>\n" +
+                "   </soapenv:Body>\n" +
+                "</soapenv:Envelope>");
+
+        ResetPinResponse resetPinResponse = new ResetPinResponse();
+
         try {
-            log.info("Sending ResetPIN SOAP request [{}] to {}", env, url);
+            JSONObject jObject = Util.getSoapResponseFromDebitWsdl(url, requestStringBuilder.toString());
+            if (jObject != null) {
+                jObject = jObject.getJSONObject("soap:Envelope");
+                jObject = jObject.getJSONObject("soap:Body");
+                jObject = jObject.getJSONObject("ns2:resetPinResponse");
 
-            // Combine all parameters into a single string for SHA-256 hashing
-            String hashInput = username + password +
-                    safeValue(req.getMobileNumber()) +
-                    safeValue(req.getRrn()) +
-                    safeValue(req.getNewLoginPin()) +
-                    safeValue(req.getConfirmLoginPin()) +
-                    safeValue(req.getCnic()) +
-                    safeValue(req.getReserved1()) +
-                    safeValue(req.getReserved2());
-
-            String hashData = HashUtil.sha256(hashInput);
-
-            String soapRequest = buildSoapEnvelope(username, password, req, hashData);
-            log.debug("SOAP Request [{}]:\n{}", env, soapRequest);
-
-            Source source = new StreamSource(new StringReader(soapRequest));
-            StringWriter writer = new StringWriter();
-
-            webServiceTemplate.sendSourceAndReceiveToResult(url, source, new StreamResult(writer));
-
-            String soapResponse = writer.toString();
-            log.debug("SOAP Response [{}]:\n{}", env, soapResponse);
-
-            ResetPinResponse response = parseSoapResponse(soapResponse);
-            log.info("✅ ResetPIN [{}] Response: {}", env, response);
-
-            return response;
-
+                String responseCode = jObject.has("ResponseCode") ? jObject.get("ResponseCode").toString() : null;
+                if (responseCode != null) {
+                    if (responseCode.equals("00")) {
+                        resetPinResponse.setResponseCode(responseCode);
+                        resetPinResponse.setResponseDescription("Successful");
+                    } else {
+                        resetPinResponse.setResponseCode(responseCode);
+                        resetPinResponse.setResponseDescription(
+                                jObject.has("ResponseDescription")
+                                        ? jObject.get("ResponseDescription").toString()
+                                        : null
+                        );
+                    }
+                } else {
+                    resetPinResponse.setResponseDescription("Service not available");
+                }
+            } else {
+                resetPinResponse.setResponseDescription("Service not available");
+            }
         } catch (Exception e) {
-            log.error("ResetPIN {} API failed: {}", env, e.getMessage(), e);
-            // Fixed constructor usage
-            throw new ExternalServiceException("ResetPIN " + env + " SOAP API failed", e);
+            resetPinResponse.setResponseDescription(e.getLocalizedMessage());
         }
-    }
-
-    // ---------- BUILD SOAP ENVELOPE ----------
-    private String buildSoapEnvelope(String username, String password, ResetPinRequest r, String hashData) {
-        return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-                "xmlns:tem=\"http://tempuri.org/\">" +
-                "<soapenv:Header/>" +
-                "<soapenv:Body>" +
-                "<tem:ResetPinRequest>" +
-                "<UserName>" + username + "</UserName>" +
-                "<Password>" + password + "</Password>" +
-                "<MobileNumber>" + safeValue(r.getMobileNumber()) + "</MobileNumber>" +
-                "<DateTime>" + safeValue(r.getDateTime()) + "</DateTime>" +
-                "<Rrn>" + safeValue(r.getRrn()) + "</Rrn>" +
-                "<ChannelId>" + CHANNEL_ID + "</ChannelId>" +
-                "<TerminalId>" + TERMINAL_ID + "</TerminalId>" +
-                "<NewLoginPin>" + safeValue(r.getNewLoginPin()) + "</NewLoginPin>" +
-                "<ConfirmLoginPin>" + safeValue(r.getConfirmLoginPin()) + "</ConfirmLoginPin>" +
-                "<CNIC>" + safeValue(r.getCnic()) + "</CNIC>" +
-                "<Reserved1>" + safeValue(r.getReserved1()) + "</Reserved1>" +
-                "<Reserved2>" + safeValue(r.getReserved2()) + "</Reserved2>" +
-                "<HashData>" + hashData + "</HashData>" +
-                "</tem:ResetPinRequest>" +
-                "</soapenv:Body>" +
-                "</soapenv:Envelope>";
-    }
-
-    private String safeValue(String value) {
-        return (value == null) ? "" : value;
-    }
-
-    // ---------- PARSE SOAP RESPONSE ----------
-    private ResetPinResponse parseSoapResponse(String xml) {
-        String rrn = getTagValue(xml, "Rrn");
-        String code = getTagValue(xml, "ResponseCode");
-        String desc = getTagValue(xml, "ResponseDescription");
-        String datetime = getTagValue(xml, "ResponseDateTime");
-        String hash = getTagValue(xml, "HashData");
-        return new ResetPinResponse(rrn, code, desc, datetime, hash);
-    }
-
-    private String getTagValue(String xml, String tag) {
-        try {
-            int start = xml.indexOf("<" + tag + ">") + tag.length() + 2;
-            int end = xml.indexOf("</" + tag + ">");
-            return (start > tag.length() && end > start) ? xml.substring(start, end) : "";
-        } catch (Exception e) {
-            return "";
-        }
+        return resetPinResponse;
     }
 }

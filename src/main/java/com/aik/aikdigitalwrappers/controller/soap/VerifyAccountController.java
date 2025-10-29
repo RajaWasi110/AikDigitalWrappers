@@ -2,6 +2,7 @@ package com.aik.aikdigitalwrappers.controller.soap;
 
 
 import com.aik.aikdigitalwrappers.dto.soap.requests.VerifyAccountRequest;
+import com.aik.aikdigitalwrappers.dto.soap.requests.VerifyAccountSoapRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.VerifyAccountResponse;
 import com.aik.aikdigitalwrappers.service.soap.VerifyAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class VerifyAccountController {
     }
 
     @PostMapping("/prod/verifyAccount")
-    public ResponseEntity<VerifyAccountResponse> verifyAccountProd(@RequestBody VerifyAccountRequest request) {
+    public ResponseEntity<VerifyAccountResponse> verifyAccountProd(@RequestBody VerifyAccountSoapRequest request) {
         return ResponseEntity.ok(service.verifyAccountProd(request));
     }
 }

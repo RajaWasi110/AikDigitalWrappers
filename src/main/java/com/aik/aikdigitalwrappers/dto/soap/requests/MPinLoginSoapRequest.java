@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MPinLoginRequest {
+public class MPinLoginSoapRequest {
     private String mobileNumber;
     private String dateTime;
     private String rrn;

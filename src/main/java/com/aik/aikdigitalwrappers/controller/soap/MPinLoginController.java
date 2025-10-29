@@ -1,6 +1,6 @@
 package com.aik.aikdigitalwrappers.controller.soap;
 
-import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginRequest;
+import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginSoapRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.MPinLoginResponse;
 import com.aik.aikdigitalwrappers.service.soap.MPinLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +16,14 @@ public class MPinLoginController {
 
     // UAT Endpoint
     @PostMapping("/uat/mpinLogin")
-    public ResponseEntity<MPinLoginResponse> loginUat(@RequestBody MPinLoginRequest request) {
+    public ResponseEntity<MPinLoginResponse> loginUat(@RequestBody MPinLoginSoapRequest request) {
         MPinLoginResponse response = mPinLoginService.loginMPinUat(request);
         return ResponseEntity.ok(response);
     }
 
     // PROD Endpoint
     @PostMapping("/prod/mpinLogin")
-    public ResponseEntity<MPinLoginResponse> loginProd(@RequestBody MPinLoginRequest request) {
+    public ResponseEntity<MPinLoginResponse> loginProd(@RequestBody MPinLoginSoapRequest request) {
         MPinLoginResponse response = mPinLoginService.loginMPinProd(request);
         return ResponseEntity.ok(response);
     }

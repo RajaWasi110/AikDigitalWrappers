@@ -14,13 +14,17 @@ public class MPinRegistrationController {
     @Autowired
     private MPinRegistrationService mPinRegistrationService;
 
+    // ----------- UAT -----------
     @PostMapping("/uat/mpinRegistration")
     public ResponseEntity<MPinRegistrationResponse> registerUat(@RequestBody MPinRegistrationRequest request) {
-        return ResponseEntity.ok(mPinRegistrationService.registerUat(request));
+        MPinRegistrationResponse response = mPinRegistrationService.mpinRegistrationUat(request);
+        return ResponseEntity.ok(response);
     }
 
+    // ----------- PROD -----------
     @PostMapping("/prod/mpinRegistration")
     public ResponseEntity<MPinRegistrationResponse> registerProd(@RequestBody MPinRegistrationRequest request) {
-        return ResponseEntity.ok(mPinRegistrationService.registerProd(request));
+        MPinRegistrationResponse response = mPinRegistrationService.mpinRegistrationProd(request);
+        return ResponseEntity.ok(response);
     }
 }
