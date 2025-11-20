@@ -7,8 +7,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class VerifyAccountRequest {
-
+public class VerifyAccountSoapRequest {
+    private String userName;
+    private String password;
     private String cnic;
     private String dateTime;
     private String mobileNumber;
@@ -20,5 +21,9 @@ public class VerifyAccountRequest {
     private String reserved3;
     private String reserved4;
     private String reserved5;
+    private String hashData;
 
+    public VerifyAccountSoapRequest() {
+
+    }
 }

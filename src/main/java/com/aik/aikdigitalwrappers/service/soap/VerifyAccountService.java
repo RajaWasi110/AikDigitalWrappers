@@ -1,14 +1,15 @@
 package com.aik.aikdigitalwrappers.service.soap;
 
 import com.aik.aikdigitalwrappers.dto.soap.requests.VerifyAccountRequest;
+import com.aik.aikdigitalwrappers.dto.soap.requests.VerifyAccountSoapRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.VerifyAccountResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
-import com.aik.aikdigitalwrappers.util.HashUtil;
+import com.aik.aikdigitalwrappers.util.Util;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -45,104 +46,121 @@ public class VerifyAccountService {
 
     // ---------- Public Endpoints ----------
     public VerifyAccountResponse verifyAccountUat(VerifyAccountRequest request) {
-        return sendSoapRequest(uatUrl, uatUsername, uatPassword, request, "UAT");
+        VerifyAccountSoapRequest verifyAccountSoapRequest= new VerifyAccountSoapRequest();
+        verifyAccountSoapRequest.setUserName(uatUsername);
+        verifyAccountSoapRequest.setPassword(uatPassword);
+        verifyAccountSoapRequest.setDateTime(request.getDateTime());
+        verifyAccountSoapRequest.setMobileNumber(request.getMobileNumber());
+        verifyAccountSoapRequest.setRrn(request.getRrn());
+        verifyAccountSoapRequest.setTransactionType(request.getTransactionType());
+        verifyAccountSoapRequest.setChannelId(request.getChannelId());
+        verifyAccountSoapRequest.setReserved1(request.getReserved1());
+        verifyAccountSoapRequest.setReserved2(request.getReserved2());
+        verifyAccountSoapRequest.setReserved3(request.getReserved3());
+        verifyAccountSoapRequest.setReserved4(request.getReserved4());
+        verifyAccountSoapRequest.setReserved5(request.getReserved5());
+        return verifyAccountResponse(verifyAccountSoapRequest,uatUrl,"U");
     }
 
-    public VerifyAccountResponse verifyAccountProd(VerifyAccountRequest request) {
-        return sendSoapRequest(prodUrl, prodUsername, prodPassword, request, "PROD");
+    public VerifyAccountResponse verifyAccountProd(VerifyAccountSoapRequest request) {
+        VerifyAccountSoapRequest verifyAccountSoapRequest= new VerifyAccountSoapRequest();
+        verifyAccountSoapRequest.setUserName(prodUsername);
+        verifyAccountSoapRequest.setPassword(prodPassword);
+        verifyAccountSoapRequest.setDateTime(request.getDateTime());
+        verifyAccountSoapRequest.setMobileNumber(request.getMobileNumber());
+        verifyAccountSoapRequest.setRrn(request.getRrn());
+        verifyAccountSoapRequest.setTransactionType(request.getTransactionType());
+        verifyAccountSoapRequest.setChannelId(request.getChannelId());
+        verifyAccountSoapRequest.setReserved1(request.getReserved1());
+        verifyAccountSoapRequest.setReserved2(request.getReserved2());
+        verifyAccountSoapRequest.setReserved3(request.getReserved3());
+        verifyAccountSoapRequest.setReserved4(request.getReserved4());
+        verifyAccountSoapRequest.setReserved5(request.getReserved5());
+        return verifyAccountResponse(verifyAccountSoapRequest,prodUrl,"P");
     }
 
     // ---------- Core SOAP Logic ----------
-    private VerifyAccountResponse sendSoapRequest(
-            String url, String username, String password, VerifyAccountRequest req, String env) {
+    public VerifyAccountResponse verifyAccountResponse(VerifyAccountSoapRequest verifyAccountRequest, String url,String env) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(verifyAccountRequest.getUserName()).
+                append(verifyAccountRequest.getPassword()).
+                append(verifyAccountRequest.getCnic()).
+                append(verifyAccountRequest.getDateTime()).
+                append(verifyAccountRequest.getMobileNumber()).
+                append(verifyAccountRequest.getRrn()).
+                append(verifyAccountRequest.getTransactionType()).
+                append(verifyAccountRequest.getChannelId()).
+                append(verifyAccountRequest.getReserved1()).
+                append(verifyAccountRequest.getReserved2()).
+                append(verifyAccountRequest.getReserved3()).
+                append(verifyAccountRequest.getReserved4()).
+                append(verifyAccountRequest.getReserved5());
+
+
+        String hashData = DigestUtils.sha256Hex(stringBuilder.toString());
+        StringBuilder requestStringBuilder = new StringBuilder("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">\n" +
+                "   <soapenv:Header/>\n" +
+                "   <soapenv:Body>\n" +
+                "      <tem:verifyAccountRequest>\n" +
+                "         <!--Optional:-->\n" +
+                "         <UserName>"+ verifyAccountRequest.getUserName() +"</UserName>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Password>"+ verifyAccountRequest.getPassword() +"</Password>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Cnic>"+ verifyAccountRequest.getCnic() +"</Cnic>\n" +
+                "         <!--Optional:-->\n" +
+                "         <DateTime>"+ verifyAccountRequest.getDateTime() +"</DateTime>\n" +
+                "         <!--Optional:-->\n" +
+                "         <MobileNumber>"+ verifyAccountRequest.getMobileNumber() +"</MobileNumber>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Rrn>"+ verifyAccountRequest.getRrn() +"</Rrn>\n" +
+                "         <!--Optional:-->\n" +
+                "         <TransactionType>"+ verifyAccountRequest.getTransactionType() +"</TransactionType>\n" +
+                "         <!--Optional:-->\n" +
+                "         <ChannelId>"+ verifyAccountRequest.getChannelId() +"</ChannelId>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Reserved1>"+ verifyAccountRequest.getReserved1() +"</Reserved1>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Reserved2>"+ verifyAccountRequest.getReserved2() +"</Reserved2>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Reserved3>"+ verifyAccountRequest.getReserved3() +"</Reserved3>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Reserved4>"+ verifyAccountRequest.getReserved4() +"</Reserved4>\n" +
+                "         <!--Optional:-->\n" +
+                "         <Reserved5>"+ verifyAccountRequest.getReserved5() +"</Reserved5>\n" +
+                "         <!--Optional:-->\n" +
+                "         <HashData>"+ hashData +"</HashData>\n" +
+                "      </tem:verifyAccountRequest>\n" +
+                "   </soapenv:Body>\n" +
+                "</soapenv:Envelope>");
+
+        VerifyAccountResponse verifyAccountResponse = new VerifyAccountResponse();
 
         try {
-            log.info("Sending VerifyAccount SOAP request [{}] to {}", env, url);
+            JSONObject jObject = Util.getSoapResponseFromDebitWsdl(url, requestStringBuilder.toString());
+            if (jObject != null) {
+                jObject = jObject.getJSONObject("soap:Envelope");
+                jObject = jObject.getJSONObject("soap:Body");
+                jObject = jObject.getJSONObject("ns2:verifyAccountResponse");
+                String responseCode = jObject.has("ResponseCode") ? (jObject.get("ResponseCode").toString()) : null;
+                if (responseCode != null) {
+                    if (responseCode.equals("00")) {
 
-            // Generate hash using centralized utility
-            String hashInput = username + password + req.getCnic() + req.getDateTime()
-                    + req.getMobileNumber() + req.getRrn();
-            String hashData = HashUtil.sha256(hashInput);
+                        verifyAccountResponse.setResponseCode(responseCode);
+                        verifyAccountResponse.setResponseDescription("Successful");
 
-            String soapRequest = buildSoapEnvelope(username, password, req, hashData);
-            log.debug("SOAP Request [{}]:\n{}", env, soapRequest);
+                    } else {
+                        verifyAccountResponse.setResponseCode(responseCode);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.TEXT_XML);
-            headers.add("SOAPAction", soapAction);
-
-            HttpEntity<String> entity = new HttpEntity<>(soapRequest, headers);
-            RestTemplate restTemplate = new RestTemplate();
-
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-            String rawXml = response.getBody();
-
-            if (rawXml == null || rawXml.isEmpty()) {
-                throw new ExternalServiceException("Empty SOAP response from " + env, 502, null);
+                        verifyAccountResponse.setResponseDescription(jObject.has("ResponseDescription") ? (jObject.get("ResponseDescription")).toString() : null);
+                    }
+                } else verifyAccountResponse.setResponseDescription("Service not available");
+            } else {
+                verifyAccountResponse.setResponseDescription("Service not available");
             }
-
-            VerifyAccountResponse parsedResponse = parseResponse(rawXml);
-            log.info("VerifyAccount [{}] Response: {}", env, parsedResponse);
-            return parsedResponse;
-
-        } catch (Exception ex) {
-            log.error("VerifyAccount {} API failed: {}", env, ex.getMessage(), ex);
-            throw new ExternalServiceException("VerifyAccount " + env + " SOAP API failed", ex);
-        }
-    }
-
-    // ---------- Build SOAP Envelope ----------
-    private String buildSoapEnvelope(String username, String password, VerifyAccountRequest r, String hashData) {
-        return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
-                "xmlns:tem=\"http://tempuri.org/\">" +
-                "<soapenv:Header/>" +
-                "<soapenv:Body>" +
-                "<tem:verifyAccountRequest>" +
-                "<UserName>" + username + "</UserName>" +
-                "<Password>" + password + "</Password>" +
-                "<Cnic>" + r.getCnic() + "</Cnic>" +
-                "<DateTime>" + r.getDateTime() + "</DateTime>" +
-                "<MobileNumber>" + r.getMobileNumber() + "</MobileNumber>" +
-                "<Rrn>" + r.getRrn() + "</Rrn>" +
-                "<TransactionType>" + TRANSACTION_TYPE + "</TransactionType>" +
-                "<ChannelId>" + CHANNEL_ID + "</ChannelId>" +
-                "<Reserved1>" + RESERVED1 + "</Reserved1>" +
-                "<Reserved2>" + nvl(r.getReserved2()) + "</Reserved2>" +
-                "<Reserved3>" + nvl(r.getReserved3()) + "</Reserved3>" +
-                "<Reserved4>" + nvl(r.getReserved4()) + "</Reserved4>" +
-                "<Reserved5>" + nvl(r.getReserved5()) + "</Reserved5>" +
-                "<HashData>" + hashData + "</HashData>" +
-                "</tem:verifyAccountRequest>" +
-                "</soapenv:Body>" +
-                "</soapenv:Envelope>";
-    }
-
-    private String nvl(String value) {
-        return value == null ? "" : value;
-    }
-
-    private VerifyAccountResponse parseResponse(String xml) {
-        try {
-            Document doc = DocumentBuilderFactory.newInstance()
-                    .newDocumentBuilder()
-                    .parse(new java.io.ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
-
-            String rrn = getTagValue(doc, "Rrn");
-            String responseCode = getTagValue(doc, "ResponseCode");
-            String responseDesc = getTagValue(doc, "ResponseDescription");
-            String mobile = getTagValue(doc, "MobileNumber");
-            String cnic = getTagValue(doc, "Cnic");
-            String hash = getTagValue(doc, "HashData");
-
-            return new VerifyAccountResponse(rrn, responseCode, responseDesc, mobile, cnic, hash, xml);
         } catch (Exception e) {
-            log.error("Failed to parse VerifyAccount SOAP response: {}", e.getMessage(), e);
-            throw new ExternalServiceException("Failed to parse VerifyAccount SOAP response", e);
+            verifyAccountResponse.setResponseDescription(e.getLocalizedMessage());
         }
-    }
-
-    private String getTagValue(Document doc, String tag) {
-        if (doc.getElementsByTagName(tag).getLength() == 0) return null;
-        return doc.getElementsByTagName(tag).item(0).getTextContent();
+        return verifyAccountResponse;
     }
 }

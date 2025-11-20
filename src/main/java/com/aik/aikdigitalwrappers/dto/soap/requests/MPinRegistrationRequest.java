@@ -9,24 +9,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MPinRegistrationRequest {
 
-    private String mpin;
-    private String confirmMpin;
-    private String dateTime;
-    private String mobileNumber;
-    private String rrn;
-    private String reserved1;
-    private String reserved2;
-    private String reserved3;
-    private String reserved4;
-    private String reserved5;
-
-    // Optional constructor without reserved fields
-    public MPinRegistrationRequest(String mpin, String confirmMpin, String dateTime,
-                                   String mobileNumber, String rrn) {
-        this.mpin = mpin;
-        this.confirmMpin = confirmMpin;
-        this.dateTime = dateTime;
-        this.mobileNumber = mobileNumber;
-        this.rrn = rrn;
-    }
+    private String mobileNumber;   // Required - client
+    private String dateTime;       // Required - client (yyyyMMddHHmmss)
+    private String rrn;            // Required - client
+    private String mpin;           // Required - Encrypted
+    private String confirmMpin;    // Required - Encrypted
+    private String reserved1;      // Optional
+    private String reserved2;      // Optional
+    private String reserved3;      // Optional
+    private String reserved4;      // Optional
+    private String reserved5;      // Optional
 }

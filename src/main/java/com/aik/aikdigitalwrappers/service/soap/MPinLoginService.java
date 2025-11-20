@@ -1,6 +1,6 @@
 package com.aik.aikdigitalwrappers.service.soap;
 
-import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginRequest;
+import com.aik.aikdigitalwrappers.dto.soap.requests.MPinLoginSoapRequest;
 import com.aik.aikdigitalwrappers.dto.soap.responses.MPinLoginResponse;
 import com.aik.aikdigitalwrappers.exception.ExternalServiceException;
 import com.aik.aikdigitalwrappers.util.HashUtil;
@@ -31,15 +31,15 @@ public class MPinLoginService {
     private static final String CHANNEL_ID = "NOVA";
     private static final String TERMINAL_ID = "NOVA";
 
-    public MPinLoginResponse loginMPinUat(MPinLoginRequest request) {
+    public MPinLoginResponse loginMPinUat(MPinLoginSoapRequest request) {
         return sendSoapRequest(UAT_URL, request, "UAT");
     }
 
-    public MPinLoginResponse loginMPinProd(MPinLoginRequest request) {
+    public MPinLoginResponse loginMPinProd(MPinLoginSoapRequest request) {
         return sendSoapRequest(PROD_URL, request, "PROD");
     }
 
-    private MPinLoginResponse sendSoapRequest(String url, MPinLoginRequest req, String env) {
+    private MPinLoginResponse sendSoapRequest(String url, MPinLoginSoapRequest req, String env) {
         try {
             log.info("▶️ Sending MPinLogin SOAP request [{}] to {}", env, url);
 
@@ -64,7 +64,7 @@ public class MPinLoginService {
         }
     }
 
-    private String buildSoapEnvelope(MPinLoginRequest r, String hashData) {
+    private String buildSoapEnvelope(MPinLoginSoapRequest r, String hashData) {
         return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tem=\"http://tempuri.org/\">" +
                 "<soapenv:Header/>" +
                 "<soapenv:Body>" +
@@ -85,7 +85,7 @@ public class MPinLoginService {
                 "</soapenv:Envelope>";
     }
 
-    private String generateHash(MPinLoginRequest r) {
+    private String generateHash(MPinLoginSoapRequest r) {
         // Include all parameters in the hash
         String rawData = username
                 + password
